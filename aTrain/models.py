@@ -59,15 +59,14 @@ def read_transcriptions_models() -> list:
     return downloaded_models
 
 
-def get_default_model() -> tuple[str, dict]:
+def get_default_model(available_models: list) -> tuple[str, dict]:
     """A function that checks the available models and returns the most suitable default model and available languages."""
-    transciption_models = read_transcriptions_models()
 
-    if REQUIRED_TRANSCRIPTION_MODEL in transciption_models:
+    if REQUIRED_TRANSCRIPTION_MODEL in available_models:
         default_model = REQUIRED_TRANSCRIPTION_MODEL
 
-    elif transciption_models:
-        default_model = transciption_models[0]
+    elif available_models:
+        default_model = available_models[0]
 
     else:
         default_model = None
