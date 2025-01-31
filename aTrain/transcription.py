@@ -113,7 +113,7 @@ def stop_all_transcriptions() -> None:
 
 class StoppableThread(Thread):
     def __init__(self, target=None, args=(), kwargs=None, daemon: bool | None = None):
-        Thread.__init__(self, target=target, args=args, kwargs=kwargs)
+        Thread.__init__(self, target=target, args=args, kwargs=kwargs, daemon=daemon)
         self.killed = False
 
     def start(self):
