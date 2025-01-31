@@ -81,7 +81,6 @@ def start_transcription(settings: dict, file_name: str, file_content: bytes) -> 
             language=settings["language"],
             device=settings["device"],
         )
-
         transcribe(
             BytesIO(file_content),
             file_id,
@@ -99,7 +98,7 @@ def start_transcription(settings: dict, file_name: str, file_content: bytes) -> 
         GUI_CONNECTOR.update_finished()
     except Exception as error:
         traceback_str = traceback.format_exc()
-        GUI_CONNECTOR.update_finished(str(error), traceback_str)
+        GUI_CONNECTOR.update_error(str(error), traceback_str)
 
 
 def stop_all_transcriptions() -> None:
