@@ -4,6 +4,8 @@ from aTrain_core.globals import (
     DOCUMENTS_DIR,
     MODELS_DIR,
     REQUIRED_MODELS,
+    REQUIRED_TRANSCRIPTION_MODEL,
+    REQUIRED_DIARIZATION_MODEL,
     REQUIRED_MODELS_DIR,
     GUI_CONNECTOR,
 )
@@ -39,38 +41,29 @@ def set_globals():
 
 @routes.get("/")
 def home():
-    if check_access(DOCUMENTS_DIR):
-        models = read_downloaded_models()  # Get the list of downloaded models
-
-        try:
-            if REQUIRED_MODELS[1] in models:
-                default_model = REQUIRED_MODELS[1]
-            elif models:
-                default_model = models[
-                    0
-                ]  # Fall back to the first model if any models are available
-
-            languages = model_languages(default_model)
-            return render_template(
-                "routes/transcribe.html",
-                cuda=cuda.is_available(),
-                models=models,
-                languages=languages,
-                default_model=default_model,  # Pass the default model to the template
-            )
-
-        except KeyError:
-            default_model = None  # No models available
-            languages = {}
-            return render_template(
-                "routes/transcribe.html",
-                cuda=cuda.is_available(),
-                models=models,
-                languages=languages,
-                default_model=default_model,  # Pass the default model to the template
-            )
-    else:
+    if not check_access(DOCUMENTS_DIR):
         return render_template("routes/access_required.html")
+
+    downloaded_models = read_downloaded_models()
+
+    if REQUIRED_DIARIZATION_MODEL in downloaded_models:
+        downloaded_models.remove(REQUIRED_DIARIZATION_MODEL)
+
+    if REQUIRED_TRANSCRIPTION_MODEL in downloaded_models:
+        default_model = REQUIRED_TRANSCRIPTION_MODEL
+        languages = model_languages(REQUIRED_TRANSCRIPTION_MODEL)
+
+    else:
+        default_model = downloaded_models[0] if downloaded_models else None
+        languages = model_languages(default_model) if downloaded_models else {}
+
+    return render_template(
+        "routes/transcribe.html",
+        cuda=cuda.is_available(),
+        models=downloaded_models,
+        languages=languages,
+        default_model=default_model,
+    )
 
 
 @routes.get("/archive")
