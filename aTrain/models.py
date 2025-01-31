@@ -5,6 +5,8 @@ import urllib.request
 
 from aTrain_core.globals import (
     MODELS_DIR,
+    REQUIRED_TRANSCRIPTION_MODEL,
+    REQUIRED_DIARIZATION_MODEL,
     REQUIRED_MODELS,
     REQUIRED_MODELS_DIR,
     GUI_CONNECTOR,
@@ -23,6 +25,7 @@ RUNNING_DOWNLOADS = []
 
 
 def read_downloaded_models() -> list:
+    """A function that returns a list of all downloaded models"""
     directories_to_search = [MODELS_DIR, REQUIRED_MODELS_DIR]
     all_downloaded_models = []
 
@@ -44,6 +47,28 @@ def read_downloaded_models() -> list:
                     break
 
     return all_downloaded_models
+
+
+def get_default_model_and_languages() -> tuple[str, dict]:
+    """A function that checks the available models and returns the most suitable default model and available languages."""
+    downloaded_models = read_downloaded_models()
+
+    if REQUIRED_DIARIZATION_MODEL in downloaded_models:
+        downloaded_models.remove(REQUIRED_DIARIZATION_MODEL)
+
+    if REQUIRED_TRANSCRIPTION_MODEL in downloaded_models:
+        default_model = REQUIRED_TRANSCRIPTION_MODEL
+        languages = model_languages(REQUIRED_TRANSCRIPTION_MODEL)
+
+    elif downloaded_models:
+        default_model = downloaded_models[0]
+        languages = model_languages(default_model)
+
+    else:
+        default_model = None
+        languages = {}
+
+    return default_model, languages
 
 
 def read_model_metadata() -> list:

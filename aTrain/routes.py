@@ -4,8 +4,6 @@ from aTrain_core.globals import (
     DOCUMENTS_DIR,
     MODELS_DIR,
     REQUIRED_MODELS,
-    REQUIRED_TRANSCRIPTION_MODEL,
-    REQUIRED_DIARIZATION_MODEL,
     REQUIRED_MODELS_DIR,
     GUI_CONNECTOR,
 )
@@ -24,6 +22,7 @@ from .archive import (
 from .models import (
     model_languages,
     read_downloaded_models,
+    get_default_model_and_languages,
     read_model_metadata,
     start_model_download,
     stop_all_downloads,
@@ -44,23 +43,12 @@ def home():
     if not check_access(DOCUMENTS_DIR):
         return render_template("routes/access_required.html")
 
-    downloaded_models = read_downloaded_models()
-
-    if REQUIRED_DIARIZATION_MODEL in downloaded_models:
-        downloaded_models.remove(REQUIRED_DIARIZATION_MODEL)
-
-    if REQUIRED_TRANSCRIPTION_MODEL in downloaded_models:
-        default_model = REQUIRED_TRANSCRIPTION_MODEL
-        languages = model_languages(REQUIRED_TRANSCRIPTION_MODEL)
-
-    else:
-        default_model = downloaded_models[0] if downloaded_models else None
-        languages = model_languages(default_model) if downloaded_models else {}
+    default_model, languages = get_default_model_and_languages()
 
     return render_template(
         "routes/transcribe.html",
         cuda=cuda.is_available(),
-        models=downloaded_models,
+        models=read_downloaded_models(),
         languages=languages,
         default_model=default_model,
     )
