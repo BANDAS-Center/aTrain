@@ -5,9 +5,7 @@
       hx-post='/get_languages' hx-trigger='change' hx-target='#languageSection' hx-swap='outerHTML'>
       {% if default_model %}
         {% for model in models %}
-          {% if model != "diarize" %}
-            <option value="{{ model }}" {% if model == default_model %} selected {% endif %}>{{ model }}</option>
-          {% endif %}
+          <option value="{{ model }}" {% if model == default_model %} selected {% endif %}>{{ model }}</option>
         {% endfor %}
       {% else %}
         <option value="" disabled selected hidden>Select Model</option>
