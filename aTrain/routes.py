@@ -5,6 +5,7 @@ from aTrain_core.globals import (
     MODELS_DIR,
     REQUIRED_MODELS,
     REQUIRED_MODELS_DIR,
+    GUI_CONNECTOR,
 )
 from aTrain_core.load_resources import remove_model
 from flask import Blueprint, Response, redirect, render_template, request, url_for
@@ -25,7 +26,7 @@ from .models import (
     start_model_download,
     stop_all_downloads,
 )
-from .transcription import EVENT_SENDER, create_thread, stop_all_transcriptions
+from .transcription import create_thread, stop_all_transcriptions
 from .version import __version__
 
 routes = Blueprint("routes", __name__)
@@ -129,7 +130,7 @@ def stop_transcription():
 
 @routes.get("/SSE")
 def SSE():
-    return Response(EVENT_SENDER.stream(), mimetype="text/event-stream")
+    return Response(GUI_CONNECTOR.stream(), mimetype="text/event-stream")
 
 
 @routes.get("/open_directory/<file_id>")

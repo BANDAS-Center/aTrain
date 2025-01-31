@@ -6,15 +6,15 @@ from io import BytesIO
 from threading import Thread
 
 from aTrain_core.check_inputs import check_inputs_transcribe
-from aTrain_core.globals import REQUIRED_MODELS_DIR, TIMESTAMP_FORMAT
-from aTrain_core.GUI_integration import EventSender
+from aTrain_core.globals import REQUIRED_MODELS_DIR, TIMESTAMP_FORMAT, GUI_CONNECTOR
 from aTrain_core.outputs import create_directory, create_file_id, write_logfile
 from aTrain_core.transcribe import transcribe
 from flask import Request
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
-from .globals import EVENT_SENDER, RUNNING_TRANSCRIPTIONS
+
+RUNNING_TRANSCRIPTIONS = []
 
 
 def create_thread(request: Request) -> None:
@@ -22,7 +22,7 @@ def create_thread(request: Request) -> None:
     settings, file = get_inputs(request=request)
     transciption = StoppableThread(
         target=start_transcription,
-        args=(settings, file.filename, file.stream.read(), EVENT_SENDER),
+        args=(settings, file.filename, file.stream.read()),
         daemon=True,
     )
     transciption.start()
@@ -57,9 +57,7 @@ def resolve_boolean_inputs(settings: dict) -> dict:
     return settings
 
 
-def start_transcription(
-    settings: dict, file_name: str, file_content: bytes, event_sender: EventSender
-) -> None:
+def start_transcription(settings: dict, file_name: str, file_content: bytes) -> None:
     """A function that checks the inputs for the transcription and then transcribes the audio file."""
     try:
         timestamp = datetime.now().strftime(TIMESTAMP_FORMAT)
@@ -96,13 +94,12 @@ def start_transcription(
             timestamp,
             file_name,  # original file path
             settings["initial_prompt"],
-            event_sender,
             REQUIRED_MODELS_DIR,
         )
-        event_sender.finished_info()
+        GUI_CONNECTOR.update_finished()
     except Exception as error:
         traceback_str = traceback.format_exc()
-        event_sender.error_info(str(error), traceback_str)
+        GUI_CONNECTOR.update_finished(str(error), traceback_str)
 
 
 def stop_all_transcriptions() -> None:

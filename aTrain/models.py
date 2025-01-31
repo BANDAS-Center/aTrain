@@ -3,8 +3,12 @@ import traceback
 import urllib.error
 import urllib.request
 
-from aTrain_core.globals import MODELS_DIR, REQUIRED_MODELS, REQUIRED_MODELS_DIR
-from aTrain_core.GUI_integration import EventSender
+from aTrain_core.globals import (
+    MODELS_DIR,
+    REQUIRED_MODELS,
+    REQUIRED_MODELS_DIR,
+    GUI_CONNECTOR,
+)
 from aTrain_core.load_resources import (
     get_model,
     load_model_config_file,
@@ -13,8 +17,9 @@ from aTrain_core.load_resources import (
 )
 from showinfm import show_in_file_manager
 
-from .globals import EVENT_SENDER, RUNNING_DOWNLOADS
 from .transcription import StoppableThread
+
+RUNNING_DOWNLOADS = []
 
 
 def read_downloaded_models() -> list:
@@ -88,7 +93,7 @@ def start_model_download(model: str, models_dir=MODELS_DIR) -> None:
 
     model_download = StoppableThread(
         target=try_to_download_model,
-        kwargs={"model": model, "event_sender": EVENT_SENDER, "models_dir": models_dir},
+        kwargs={"model": model, "models_dir": models_dir},
         daemon=True,
     )
     model_download.start()
@@ -97,20 +102,18 @@ def start_model_download(model: str, models_dir=MODELS_DIR) -> None:
     RUNNING_DOWNLOADS.remove((model_download, model))
 
 
-def try_to_download_model(
-    model: str, event_sender: EventSender, models_dir=None
-) -> None:
+def try_to_download_model(model: str, models_dir=None) -> None:
     """A function that tries to download the specified model and sends any occurring errors to the frontend."""
 
     if models_dir is None:
         models_dir = MODELS_DIR
     try:
         check_internet()
-        get_model(model, event_sender, models_dir, REQUIRED_MODELS_DIR)
-        event_sender.finished_info()
+        get_model(model, models_dir, REQUIRED_MODELS_DIR)
+        GUI_CONNECTOR.update_finished()
     except Exception as error:
         traceback_str = traceback.format_exc()
-        event_sender.error_info(str(error), traceback_str)
+        GUI_CONNECTOR.update_error(str(error), traceback_str)
         remove_model(model)
 
 
@@ -132,4 +135,4 @@ def stop_all_downloads() -> None:
         download.join()
         remove_model(model)
     RUNNING_DOWNLOADS.clear()
-    EVENT_SENDER.finished_info()
+    GUI_CONNECTOR.update_finished()

@@ -5,8 +5,7 @@ from flask import Flask
 from screeninfo import get_monitors
 from wakepy import keep
 
-from .globals import EVENT_SENDER
-from aTrain_core.globals import REQUIRED_MODELS, REQUIRED_MODELS_DIR
+from aTrain_core.globals import REQUIRED_MODELS, REQUIRED_MODELS_DIR, GUI_CONNECTOR
 from .models import start_model_download, stop_all_downloads
 from .routes import routes
 from .transcription import stop_all_transcriptions
@@ -27,7 +26,7 @@ def run_app() -> None:
 
 def teardown() -> None:
     """A function that is invoked when the application window closes and which terminates all processes that are still running."""
-    EVENT_SENDER.end_stream()
+    GUI_CONNECTOR.end_stream()
     stop_all_transcriptions()
     stop_all_downloads()
 
