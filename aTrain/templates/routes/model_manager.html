@@ -24,10 +24,10 @@
                         <td>{{ model_dict['size'] }}</td>
                         <td>
                             {% if model_dict['downloaded'] %}
-                            <div hx-get="{{ url_for('api.delete_model', model=model_dict['model']) }}"
+                            <div hx-get="{{ url_for('routes.delete_model', model=model_dict['model']) }}"
                                 hx-target="#model_manager" hx-swap="outerHTML" class="btn btn-xs md:btn-sm">Delete</div>
                             {% else %}
-                            <div hx-get="{{ url_for('api.download_model', model=model_dict['model']) }}"
+                            <div hx-get="{{ url_for('routes.download_model', model=model_dict['model']) }}"
                                 hx-target="#model_manager" hx-swap="outerHTML"
                                 class="btn btn-neutral mr-2 btn-xs md:btn-sm"
                                 _="on click send started to #modalModelDownload and #timer">Download</div>

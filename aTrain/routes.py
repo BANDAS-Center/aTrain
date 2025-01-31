@@ -1,10 +1,31 @@
-from aTrain_core.globals import DOCUMENTS_DIR
-from flask import Blueprint, render_template, request
+import platform
+
+from aTrain_core.globals import (
+    DOCUMENTS_DIR,
+    MODELS_DIR,
+    REQUIRED_MODELS,
+    REQUIRED_MODELS_DIR,
+)
+from aTrain_core.load_resources import remove_model
+from flask import Blueprint, Response, redirect, render_template, request, url_for
 from torch import cuda
 
-from .archive import load_faqs, read_archive, check_access
-from aTrain_core.globals import REQUIRED_MODELS
-from .models import model_languages, read_downloaded_models, read_model_metadata
+from .archive import (
+    check_access,
+    delete_transcription,
+    load_faqs,
+    open_file_directory,
+    read_archive,
+    read_directories,
+)
+from .models import (
+    model_languages,
+    read_downloaded_models,
+    read_model_metadata,
+    start_model_download,
+    stop_all_downloads,
+)
+from .transcription import EVENT_SENDER, create_thread, stop_all_transcriptions
 from .version import __version__
 
 routes = Blueprint("routes", __name__)
@@ -92,3 +113,80 @@ def get_languages():
     model = request.form.get("model")
     languages_dict = model_languages(model)
     return render_template("settings/languages.html", languages=languages_dict)
+
+
+@routes.post("/start_transcription")
+def start_transcription():
+    create_thread(request)
+    return ""
+
+
+@routes.get("/stop_transcription")
+def stop_transcription():
+    stop_all_transcriptions()
+    return redirect(url_for("routes.home"))
+
+
+@routes.get("/SSE")
+def SSE():
+    return Response(EVENT_SENDER.stream(), mimetype="text/event-stream")
+
+
+@routes.get("/open_directory/<file_id>")
+def open_directory(file_id):
+    open_file_directory(file_id)
+    return ""
+
+
+@routes.get("/open_latest_transcription")
+def open_latest_transcription():
+    latest_transcription = read_directories()[0]
+    open_file_directory(latest_transcription)
+    return ""
+
+
+@routes.get("/delete_directory/<file_id>")
+def delete_directory(file_id):
+    delete_transcription(file_id)
+    return render_template(
+        "routes/archive.html", archive_data=read_archive(), only_content=True
+    )
+
+
+@routes.get("/download_model/<model>")
+def download_model(model):
+    if model in REQUIRED_MODELS and platform.system() == "Linux":
+        models_dir = MODELS_DIR
+    elif (
+        model in REQUIRED_MODELS
+        and platform.system() == "Windows"
+        or model in REQUIRED_MODELS
+        and platform.system() == "Darwin"
+    ):
+        models_dir = REQUIRED_MODELS_DIR
+    else:
+        models_dir = MODELS_DIR
+    start_model_download(model, models_dir)
+    return render_template(
+        "routes/model_manager.html",
+        models=read_model_metadata(),
+        only_content=True,
+        REQUIRED_MODELS=REQUIRED_MODELS,
+    )
+
+
+@routes.get("/stop_download")
+def stop_download():
+    stop_all_downloads()
+    return ""
+
+
+@routes.get("/delete_model/<model>")
+def delete_model(model):
+    remove_model(model)
+    return render_template(
+        "routes/model_manager.html",
+        models=read_model_metadata(),
+        only_content=True,
+        REQUIRED_MODELS=REQUIRED_MODELS,
+    )

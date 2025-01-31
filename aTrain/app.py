@@ -5,7 +5,6 @@ from flask import Flask
 from screeninfo import get_monitors
 from wakepy import keep
 
-from .api import api
 from .globals import EVENT_SENDER
 from aTrain_core.globals import REQUIRED_MODELS, REQUIRED_MODELS_DIR
 from .models import start_model_download, stop_all_downloads
@@ -14,7 +13,6 @@ from .transcription import stop_all_transcriptions
 
 app = Flask(__name__)
 app.register_blueprint(routes)
-app.register_blueprint(api)
 
 
 def run_app() -> None:
