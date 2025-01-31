@@ -28,7 +28,7 @@
             end
         end
 
-        on error as json
+        on backend_error as json
             put it.error into #errorCode 
             put it.traceback into #traceback
             remove .modal-open from .modal
