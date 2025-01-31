@@ -21,8 +21,8 @@ from .archive import (
 )
 from .models import (
     model_languages,
-    read_downloaded_models,
-    get_default_model_and_languages,
+    read_transcriptions_models,
+    get_default_model,
     read_model_metadata,
     start_model_download,
     stop_all_downloads,
@@ -42,15 +42,13 @@ def set_globals():
 def home():
     if not check_access(DOCUMENTS_DIR):
         return render_template("routes/access_required.html")
-
-    default_model, languages = get_default_model_and_languages()
-
+    default_model = get_default_model()
     return render_template(
         "routes/transcribe.html",
         cuda=cuda.is_available(),
-        models=read_downloaded_models(),
-        languages=languages,
+        models=read_transcriptions_models(),
         default_model=default_model,
+        languages=model_languages(default_model) if default_model else {},
     )
 
 

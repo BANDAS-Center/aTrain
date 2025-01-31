@@ -49,26 +49,30 @@ def read_downloaded_models() -> list:
     return all_downloaded_models
 
 
-def get_default_model_and_languages() -> tuple[str, dict]:
-    """A function that checks the available models and returns the most suitable default model and available languages."""
+def read_transcriptions_models() -> list:
+    """A function that lists all downloaded transcription models"""
     downloaded_models = read_downloaded_models()
 
     if REQUIRED_DIARIZATION_MODEL in downloaded_models:
         downloaded_models.remove(REQUIRED_DIARIZATION_MODEL)
 
-    if REQUIRED_TRANSCRIPTION_MODEL in downloaded_models:
-        default_model = REQUIRED_TRANSCRIPTION_MODEL
-        languages = model_languages(REQUIRED_TRANSCRIPTION_MODEL)
+    return downloaded_models
 
-    elif downloaded_models:
-        default_model = downloaded_models[0]
-        languages = model_languages(default_model)
+
+def get_default_model() -> tuple[str, dict]:
+    """A function that checks the available models and returns the most suitable default model and available languages."""
+    transciption_models = read_transcriptions_models()
+
+    if REQUIRED_TRANSCRIPTION_MODEL in transciption_models:
+        default_model = REQUIRED_TRANSCRIPTION_MODEL
+
+    elif transciption_models:
+        default_model = transciption_models[0]
 
     else:
         default_model = None
-        languages = {}
 
-    return default_model, languages
+    return default_model
 
 
 def read_model_metadata() -> list:
